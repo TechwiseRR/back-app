@@ -23,6 +23,7 @@ class User extends Authenticatable
         'bio',
         'registrationDate',
         'isEmailVerified',
+        'role_id',
     ];
 
     /**
@@ -46,6 +47,10 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 
     /**
      * @var int
@@ -86,4 +91,9 @@ class User extends Authenticatable
      * @var bool
      */
     private bool $isEmailVerified;
+
+    /**
+     * @var int
+     */
+    private int $role_id;
 }
