@@ -17,13 +17,16 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'username',
+        'firstName',
+        'lastName',
+        'updateDate',
         'email',
         'password',
         'avatar',
         'bio',
         'registrationDate',
         'isEmailVerified',
-        'role_id',
+        'roleId',
     ];
 
     /**
@@ -33,7 +36,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'remember_token',
+        'rememberToken',
     ];
 
     /**
@@ -49,7 +52,7 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class,'permissionId');
     }
 
     /**
@@ -61,6 +64,21 @@ class User extends Authenticatable
      * @var string
      */
     private string $username;
+
+    /**
+     * @var string
+     */
+    private string $firstName;
+
+    /**
+     * @var string
+     */
+    private string $lastName;
+
+    /**
+     * @var \DateTime
+     */
+    private \DateTime $updateDate;
 
     /**
      * @var string
@@ -95,5 +113,5 @@ class User extends Authenticatable
     /**
      * @var int
      */
-    private int $role_id;
+    private int $roleId;
 }
