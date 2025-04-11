@@ -19,12 +19,12 @@ class User extends Authenticatable
         'username',
         'firstName',
         'lastName',
-        'updateDate',
         'email',
         'password',
         'avatar',
         'bio',
         'registrationDate',
+        'updateDate',
         'isEmailVerified',
         'roleId',
     ];
@@ -76,11 +76,6 @@ class User extends Authenticatable
     private string $lastName;
 
     /**
-     * @var \DateTime
-     */
-    private \DateTime $updateDate;
-
-    /**
      * @var string
      */
     private string $email;
@@ -104,6 +99,11 @@ class User extends Authenticatable
      * @var \DateTime
      */
     private \DateTime $registrationDate;
+
+    /**
+     * @var \DateTime
+     */
+    private \DateTime $updateDate;
 
     /**
      * @var bool
