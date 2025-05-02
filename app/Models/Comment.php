@@ -10,10 +10,10 @@ class Comment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'resource_id',
-        'author_id',
         'content',
         'commentDate',
+        'resource_id',
+        'author_id',
     ];
 
     public function resource()
