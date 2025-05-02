@@ -10,16 +10,16 @@ class Ressource extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
         'title',
         'content',
-        'author_id',
         'publicationDate',
         'status',
         'validationDate',
-        'validator_id',
         'upvotes',
         'downvotes',
+        'category_id',
+        'author_id',
+        'validator_id',
     ];
 
     public function category()
