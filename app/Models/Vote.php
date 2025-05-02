@@ -10,10 +10,10 @@ class Vote extends Model
     use HasFactory;
 
     protected $fillable = [
-        'resource_id',
-        'user_id',
         'voteType',
         'voteDate',
+        'resource_id',
+        'user_id',
     ];
 
 
