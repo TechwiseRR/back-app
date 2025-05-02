@@ -10,11 +10,11 @@ class ResourceValidation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'resource_id',
-        'moderator_id',
         'validationStatus',
         'validationDate',
         'comment',
+        'resource_id',
+        'moderator_id',
     ];
 
     public function resource()
