@@ -11,7 +11,7 @@ class TypeRessource extends Model
 
     protected $fillable = [
         'name',
-        'desc',
+        'description',
     ];
 }
 
