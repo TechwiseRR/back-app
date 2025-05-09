@@ -12,19 +12,22 @@ class Role extends Model
     protected $fillable = [
         'roleName',
         'rank',
-        'permission_id',
+        'permissionId',
     ];
 
     /**
      * Relation avec la permission.
      * Un rôle possède une permission.
      */
-    public function perm()
+    public function permissions()
     {
-        return $this->belongsTo(Permission::class, 'permission_id');
+        return $this->belongsTo(Permission::class, 'permissionId');
     }
 
-    // ==== Champs privés ====
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 
     /**
      * @var int
@@ -44,5 +47,5 @@ class Role extends Model
     /**
      * @var int
      */
-    private int $permission_id;
+    private int $permissionId;
 }
