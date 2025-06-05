@@ -55,5 +55,63 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class,'permissionId');
     }
 
+    /**
+     * @var int
+     */
+    private int $id;
 
+    /**
+     * @var string
+     */
+    private string $username;
+
+    /**
+     * @var string
+     */
+    private string $firstName;
+
+    /**
+     * @var string
+     */
+    private string $lastName;
+
+    /**
+     * @var string
+     */
+    private string $email;
+
+    /**
+     * @var string
+     */
+    private string $password;
+
+    /**
+     * @var string
+     */
+    private string $avatar;
+
+    /**
+     * @var string
+     */
+    private string $bio;
+
+    /**
+     * @var \DateTime
+     */
+    private \DateTime $registrationDate;
+
+    /**
+     * @var \DateTime
+     */
+    private \DateTime $updateDate;
+
+    /**
+     * @var bool
+     */
+    private bool $isEmailVerified;
+
+    /**
+     * @var int
+     */
+    private int $roleId;
 }
