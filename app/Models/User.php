@@ -17,6 +17,8 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'username',
+        'firstName',
+        'lastName',
         'email',
         'password',
         'avatar',
@@ -52,6 +54,5 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class,'permissionId');
     }
-
 
 }
