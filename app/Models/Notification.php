@@ -39,5 +39,4 @@ class Notification extends Model
     {
         // Implémentation à définir selon logique métier (email, socket, etc.)
     }
-
 }

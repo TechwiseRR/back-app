@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+
     public function index()
     {
         return response()->json([
@@ -66,4 +67,5 @@ class NotificationController extends Controller
             'message' => 'Notification supprimée'
         ], 204);
     }
+
 }
