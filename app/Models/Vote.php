@@ -5,27 +5,31 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
-class RessourceValidation extends Model
+class Vote extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'validationStatus',
-        'validationDate',
-        'comment',
+        'voteType',
+        'voteDate',
         'resource_id',
-        'moderator_id',
+        'user_id',
     ];
+
 
     public function resource()
     {
         return $this->belongsTo(Resource::class);
     }
 
-    public function moderator()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'moderator_id');
+        return $this->belongsTo(User::class);
     }
 
+    public function castVote()
+    {
+        $this->voteDate = now();
+        $this->save();
+    }
 }
