@@ -39,34 +39,4 @@ class Notification extends Model
     {
         // Implémentation à définir selon logique métier (email, socket, etc.)
     }
-
-    /**
-     * @var int
-     */
-    private int $id;
-
-    /**
-     * @var int
-     */
-    private int $userId;
-
-    /**
-     * @var string
-     */
-    private string $notificationType;
-
-    /**
-     * @var string
-     */
-    private string $content;
-
-    /**
-     * @var \DateTime
-     */
-    private \DateTime $notificationDate;
-
-    /**
-     * @var bool
-     */
-    private bool $read;
 }
