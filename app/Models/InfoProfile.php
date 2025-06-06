@@ -33,49 +33,4 @@ class InfoProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    /**
-     * @var int
-     */
-    private int $id;
-
-    /**
-     * @var int
-     */
-    private int $userId;
-
-    /**
-     * @var string
-     */
-    private string $firstName;
-
-    /**
-     * @var string
-     */
-    private string $lastName;
-
-    /**
-     * @var string
-     */
-    private string $address;
-
-    /**
-     * @var string
-     */
-    private string $postalCode;
-
-    /**
-     * @var string
-     */
-    private string $city;
-
-    /**
-     * @var string
-     */
-    private string $country;
-
-    /**
-     * @var \DateTime
-     */
-    private \DateTime $updateDate;
 }
