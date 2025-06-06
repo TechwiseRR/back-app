@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ResourceValidation extends Model
+
+class RessourceValidation extends Model
 {
     use HasFactory;
 
