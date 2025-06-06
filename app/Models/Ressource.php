@@ -42,5 +42,4 @@ class Ressource extends Model
     {
         return $this->belongsTo(TypeRessource::class, 'type_ressource_id'); // Correction ici
     }
-
 }
