@@ -13,12 +13,13 @@ return new class extends Migration
             $table->id();
             $table->string('action');
             $table->text('description')->nullable();
-            $table->json('metadata')->nullable();
-            $table->timestamp('action_date')->useCurrent();
-            $table->unsignedBigInteger('user_id');
+            $table->timestamp('actionDate')->useCurrent();
+            $table->unsignedBigInteger('userId');
+            $table->unsignedBigInteger('ressourceId')->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('userId')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('ressourceId')->references('id')->on('ressources')->onDelete('set null');
         });
     }
 
