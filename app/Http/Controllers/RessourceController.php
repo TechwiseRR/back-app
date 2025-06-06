@@ -7,6 +7,32 @@ use Illuminate\Http\Request;
 
 class RessourceController extends Controller
 {
+
+    /**
+     * Affiche une liste paginée de ressources.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        $ressources = Ressource::query();
+
+        // Optionnel : Filtrer selon les catégories, statuts ou autres critères, si fourni dans la requête.
+        if ($request->filled('category_id')) {
+            $ressources->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('status')) {
+            $ressources->where('status', $request->status);
+        }
+
+        // Pagination avec 10 éléments par page (modifiable si besoin).
+        $paginated = $ressources->paginate(10);
+
+        return response()->json($paginated);
+    }
+
     /**
      * Affiche les détails d'une ressource spécifique.
      *
