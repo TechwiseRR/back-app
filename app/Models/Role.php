@@ -12,7 +12,7 @@ class Role extends Model
     protected $fillable = [
         'roleName',
         'rank',
-        'permission_id',
+        'permissionId',
     ];
 
     /**
@@ -21,7 +21,7 @@ class Role extends Model
      */
     public function permissions()
     {
-        return $this->belongsTo(Permission::class, 'permission_id');
+        return $this->belongsTo(Permission::class, 'permissionId');
     }
 
     public function users()
@@ -47,5 +47,5 @@ class Role extends Model
     /**
      * @var int
      */
-    private int $permission_id;
+    private int $permissionId;
 }
