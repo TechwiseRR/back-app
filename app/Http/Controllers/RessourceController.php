@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 
 class RessourceController extends Controller
 {
-
     /**
      * Affiche une liste paginée de ressources.
      *
@@ -62,7 +61,7 @@ class RessourceController extends Controller
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'required|exists:categories,id',
-            'author_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
         ]);
 
@@ -91,7 +90,8 @@ class RessourceController extends Controller
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
-            'author_id' => 'sometimes|required|exists:users,id',
+            '
+            ' => 'sometimes|required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
         ]);
 
@@ -110,5 +110,6 @@ class RessourceController extends Controller
         ], 200); // Code HTTP 200 : Succès
 
     }
+
 
 }
