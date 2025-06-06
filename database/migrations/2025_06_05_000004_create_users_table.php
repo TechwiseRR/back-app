@@ -28,6 +28,9 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
 
+            // Contraintes de clé étrangère
+            $table->foreign('roleId')->references('id')->on('roles')->onDelete('set null');
+
             // Index pour la performance
             $table->index('roleId');
         });
@@ -58,3 +61,4 @@ return new class extends Migration
         Schema::dropIfExists('sessions');
     }
 };
+

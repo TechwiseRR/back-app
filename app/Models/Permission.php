@@ -19,18 +19,4 @@ class Permission extends Model
         'description',
     ];
 
-    /**
-     * @var int
-     */
-    private int $id;
-
-    /**
-     * @var string
-     */
-    private string $name;
-
-    /**
-     * @var string
-     */
-    private string $description;
 }
