@@ -16,7 +16,7 @@ class Permission extends Model
      */
     protected $fillable = [
         'name',
-        'desc',
+        'description',
     ];
 
     /**
@@ -32,5 +32,5 @@ class Permission extends Model
     /**
      * @var string
      */
-    private string $desc;
+    private string $description;
 }

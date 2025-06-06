@@ -19,12 +19,15 @@ class Role extends Model
      * Relation avec la permission.
      * Un rôle possède une permission.
      */
-    public function perm()
+    public function permissions()
     {
         return $this->belongsTo(Permission::class, 'permission_id');
     }
 
-    // ==== Champs privés ====
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 
     /**
      * @var int
