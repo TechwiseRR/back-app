@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\InfoProfile;
 use Illuminate\Http\Request;
 
@@ -72,4 +73,5 @@ class InfoProfileController extends Controller
         $infoProfile->delete();
         return response()->noContent();
     }
+
 }
