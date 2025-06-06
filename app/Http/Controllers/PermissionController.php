@@ -19,13 +19,13 @@ class PermissionController extends Controller
 
     public function store(Request $request)
     {
-        $permission = Permission::create($request->only(['name', 'desc']));
+        $permission = Permission::create($request->only(['name', 'description']));
         return response()->json($permission, 201);
     }
 
     public function update(Request $request, Permission $permission)
     {
-        $permission->update($request->only(['name', 'desc']));
+        $permission->update($request->only(['name', 'description']));
         return response()->json($permission, 200);
     }
 
