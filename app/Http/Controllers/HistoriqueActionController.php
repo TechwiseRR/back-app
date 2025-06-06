@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HistoriqueAction;
+
 use Illuminate\Http\Request;
 
 class HistoriqueActionController extends Controller
