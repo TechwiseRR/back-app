@@ -46,15 +46,15 @@ class RessourceController extends Controller
         }
 
         // Tri
-        $sortBy = $request->get('sort_by', 'publicationDate');
+        $sortBy = $request->get('sort_by', 'publication_date');
         $sortOrder = $request->get('sort_order', 'desc');
 
         // Vérifier que les champs de tri sont autorisés
-        $allowedSortFields = ['title', 'publicationDate', 'upvotes', 'downvotes', 'created_at'];
+        $allowedSortFields = ['title', 'publication_date', 'upvotes', 'downvotes', 'created_at'];
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder);
         } else {
-            $query->orderBy('publicationDate', 'desc');
+            $query->orderBy('publication_date', 'desc');
         }
 
         // Pagination

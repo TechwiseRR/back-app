@@ -30,6 +30,7 @@ class RessourceSeeder extends Seeder
                 'user_id' => $users->random()->id,
                 'category_id' => $categories->random()->id,
                 'publication_date' => now(),
+                'status' => 'published', // Ajout du statut published
             ],
             [
                 'title' => 'Yoga pour débutants',
@@ -40,6 +41,7 @@ class RessourceSeeder extends Seeder
                 'user_id' => $users->random()->id,
                 'category_id' => $categories->random()->id,
                 'publication_date' => now(),
+                'status' => 'published', // Ajout du statut published
             ],
             [
                 'title' => 'Méditation guidée pour mieux dormir',
@@ -50,6 +52,7 @@ class RessourceSeeder extends Seeder
                 'user_id' => $users->random()->id,
                 'category_id' => $categories->random()->id,
                 'publication_date' => now(),
+                'status' => 'published', // Ajout du statut published
             ],
         ];
 
