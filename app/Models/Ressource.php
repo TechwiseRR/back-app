@@ -27,6 +27,20 @@ class Ressource extends Model
         'type_ressource_id'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'tags' => 'json',
+        'is_validated' => 'boolean',
+        'publication_date' => 'datetime',
+        'validation_date' => 'datetime',
+        'upvotes' => 'integer',
+        'downvotes' => 'integer',
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
