@@ -1,4 +1,9 @@
 <?php
+
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\InfoProfileController;
+use App\Http\Controllers\RessourceController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -26,8 +31,21 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout']);
 
 // Notifications
-    Route::apiResource('notifications', NotificationController::class);
+    Route::apiResource('/notifications', NotificationController::class);
 
 // Permissions
-    Route::apiResource('permissions', PermissionController::class);
+    Route::apiResource('/permissions', PermissionController::class);
+
+// Informations de profil utilisateur
+    Route::get('/info-profile', [InfoProfileController::class]);
+
+// Ressources
+    Route::apiResource('/resources', RessourceController::class);
+
+// Routes pour Role
+    Route::apiResource('/roles', RoleController::class);
+
+// Routes pour Category
+    Route::apiResource('/categories', CategoryController::class);
+
 });
