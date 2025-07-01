@@ -40,6 +40,22 @@ class Ressource extends Model
 
     public function type()
     {
-        return $this->belongsTo(TypeRessource::class, 'type_ressource_id'); // Correction ici
+        return $this->belongsTo(TypeRessource::class, 'type_ressource_id');
+    }
+
+    // Relations inverses ajoutées
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function historiqueActions()
+    {
+        return $this->hasMany(HistoriqueAction::class);
     }
 }

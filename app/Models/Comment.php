@@ -12,13 +12,13 @@ class Comment extends Model
     protected $fillable = [
         'content',
         'commentDate',
-        'resource_id',
+        'ressource_id', // Changé de resource_id à ressource_id
         'author_id',
     ];
 
-    public function resource()
+    public function ressource() // Changé de resource() à ressource()
     {
-        return $this->belongsTo(Resource::class);
+        return $this->belongsTo(Ressource::class); // Changé de Resource à Ressource
     }
 
     public function author()
@@ -27,7 +27,6 @@ class Comment extends Model
     }
 
     /** Méthode logique du diagramme */
-
     public function postComment()
     {
         $this->commentDate = now();
