@@ -8,28 +8,71 @@ use Illuminate\Http\Request;
 class RessourceController extends Controller
 {
     /**
-     * Affiche une liste paginée de ressources.
+     * Affiche une liste paginée de ressources avec filtrage et tri.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
-        $ressources = Ressource::query();
+        $query = Ressource::with(['category', 'user', 'type']);
 
-        // Optionnel : Filtrer selon les catégories, statuts ou autres critères, si fourni dans la requête.
+        // Filtrage par catégorie
         if ($request->filled('category_id')) {
-            $ressources->where('category_id', $request->category_id);
+            $query->where('category_id', $request->category_id);
         }
 
+        // Filtrage par statut (publié uniquement pour les utilisateurs non connectés)
         if ($request->filled('status')) {
-            $ressources->where('status', $request->status);
+            $query->where('status', $request->status);
+        } else {
+            // Par défaut, afficher seulement les ressources publiées
+            $query->where('status', 'published');
         }
 
-        // Pagination avec 10 éléments par page (modifiable si besoin).
-        $paginated = $ressources->paginate(10);
+        // Filtrage par type de ressource
+        if ($request->filled('type_ressource_id')) {
+            $query->where('type_ressource_id', $request->type_ressource_id);
+        }
 
-        return response()->json($paginated);
+        // Filtrage par auteur
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Recherche par titre
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // Tri
+        $sortBy = $request->get('sort_by', 'publicationDate');
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        // Vérifier que les champs de tri sont autorisés
+        $allowedSortFields = ['title', 'publicationDate', 'upvotes', 'downvotes', 'created_at'];
+        if (in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('publicationDate', 'desc');
+        }
+
+        // Pagination
+        $perPage = min($request->get('per_page', 10), 50);
+        $ressources = $query->paginate($perPage);
+
+        return response()->json([
+            'message' => 'Liste des ressources récupérée avec succès',
+            'data' => $ressources->items(),
+            'pagination' => [
+                'current_page' => $ressources->currentPage(),
+                'last_page' => $ressources->lastPage(),
+                'per_page' => $ressources->perPage(),
+                'total' => $ressources->total(),
+                'from' => $ressources->firstItem(),
+                'to' => $ressources->lastItem(),
+            ]
+        ]);
     }
 
     /**
@@ -40,7 +83,20 @@ class RessourceController extends Controller
      */
     public function show(Ressource $ressource)
     {
-        return response()->json($ressource);
+        // Charger les relations
+        $ressource->load(['category', 'user', 'validator', 'type']);
+
+        // Vérifier si la ressource est publiée
+        if ($ressource->status !== 'published') {
+            return response()->json([
+                'error' => 'Cette ressource n\'est pas disponible'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Ressource récupérée avec succès',
+            'data' => $ressource
+        ]);
     }
 
     /**
@@ -51,24 +107,27 @@ class RessourceController extends Controller
      */
     public function store(Request $request)
     {
-        // Validation des données
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'publicationDate' => 'nullable|date',
-            'status' => 'required|in:draft,published',
+            'status' => 'required|in:draft,published,pending',
             'validationDate' => 'nullable|date',
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'user_id' => 'required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
+            'type_ressource_id' => 'required|exists:type_ressources,id',
         ]);
 
-        // Création de la ressource
         $ressource = Ressource::create($validated);
+        $ressource->load(['category', 'user', 'type']);
 
-        return response()->json($ressource, 201); // Code HTTP 201 : Création
+        return response()->json([
+            'message' => 'Ressource créée avec succès',
+            'data' => $ressource
+        ], 201);
     }
 
     /**
@@ -80,36 +139,41 @@ class RessourceController extends Controller
      */
     public function update(Request $request, Ressource $ressource)
     {
-        // Validation des données
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'content' => 'sometimes|required|string',
             'publicationDate' => 'nullable|date',
-            'status' => 'sometimes|required|in:draft,published',
+            'status' => 'sometimes|required|in:draft,published,pending',
             'validationDate' => 'nullable|date',
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
-            '
-            ' => 'sometimes|required|exists:users,id',
+            'user_id' => 'sometimes|required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
+            'type_ressource_id' => 'sometimes|required|exists:type_ressources,id',
         ]);
 
-        // Mise à jour de la ressource
         $ressource->update($validated);
+        $ressource->load(['category', 'user', 'type']);
 
-        return response()->json($ressource);
+        return response()->json([
+            'message' => 'Ressource mise à jour avec succès',
+            'data' => $ressource
+        ]);
     }
 
+    /**
+     * Supprime une ressource.
+     *
+     * @param  \App\Models\Ressource  $ressource
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy(Ressource $ressource)
     {
         $ressource->delete();
 
         return response()->json([
             'message' => 'Ressource supprimée avec succès.'
-        ], 200); // Code HTTP 200 : Succès
-
+        ], 200);
     }
-
-
 }
