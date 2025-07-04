@@ -117,16 +117,35 @@ class RessourceController extends Controller
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'required|exists:categories,id',
-            'user_id' => 'required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
             'type_ressource_id' => 'required|exists:type_ressources,id',
         ]);
 
-        $ressource = Ressource::create($validated);
+        // Récupérer l'utilisateur connecté
+        $user = auth()->user();
+        
+        // Debug: Afficher les informations de l'utilisateur et de son rôle
+        \Log::info('User ID: ' . $user->id);
+        \Log::info('User roleId: ' . $user->roleId);
+        \Log::info('User role: ' . ($user->role ? json_encode($user->role->toArray()) : 'null'));
+        
+        // Déterminer si l'utilisateur est admin
+        $isAdmin = $user->isAdmin();
+        \Log::info('Is Admin: ' . ($isAdmin ? 'true' : 'false'));
+        
+        // Créer la ressource avec les données validées
+        $ressourceData = array_merge($validated, [
+            'user_id' => $user->id,
+            'is_validated' => $isAdmin, // true pour les admins, false pour les utilisateurs normaux
+        ]);
+
+        $ressource = Ressource::create($ressourceData);
         $ressource->load(['category', 'user', 'type']);
 
+        $message = $isAdmin ? 'Ressource créée et validée avec succès' : 'Ressource créée avec succès (en attente de validation)';
+
         return response()->json([
-            'message' => 'Ressource créée avec succès',
+            'message' => $message,
             'data' => $ressource
         ], 201);
     }
@@ -150,10 +169,24 @@ class RessourceController extends Controller
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
-            'user_id' => 'sometimes|required|exists:users,id',
             'validator_id' => 'nullable|exists:users,id',
             'type_ressource_id' => 'sometimes|required|exists:type_ressources,id',
         ]);
+
+        // Récupérer l'utilisateur connecté
+        $user = auth()->user();
+        
+        // Vérifier que l'utilisateur peut modifier cette ressource
+        if ($ressource->user_id !== $user->id && !$user->isAdmin()) {
+            return response()->json([
+                'error' => 'Vous n\'êtes pas autorisé à modifier cette ressource'
+            ], 403);
+        }
+
+        // Seuls les admins peuvent modifier le champ is_validated
+        if (isset($validated['is_validated']) && !$user->isAdmin()) {
+            unset($validated['is_validated']);
+        }
 
         $ressource->update($validated);
         $ressource->load(['category', 'user', 'type']);
@@ -172,6 +205,16 @@ class RessourceController extends Controller
      */
     public function destroy(Ressource $ressource)
     {
+        // Récupérer l'utilisateur connecté
+        $user = auth()->user();
+        
+        // Vérifier que l'utilisateur peut supprimer cette ressource
+        if ($ressource->user_id !== $user->id && !$user->isAdmin()) {
+            return response()->json([
+                'error' => 'Vous n\'êtes pas autorisé à supprimer cette ressource'
+            ], 403);
+        }
+
         $ressource->delete();
 
         return response()->json([

@@ -21,7 +21,8 @@ class Ressource extends Model
         'category_id',
         'user_id',
         'validator_id',
-        'type_ressource_id'
+        'type_ressource_id',
+        'is_validated'
     ];
 
     public function category()

@@ -51,7 +51,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function role()
     {
-        return $this->belongsTo(Role::class,'permissionId');
+        return $this->belongsTo(Role::class,'roleId');
     }
 
     // Implémentation des méthodes requises par JWTSubject
@@ -73,5 +73,15 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role && $this->role->rank === 1;
     }
 }
