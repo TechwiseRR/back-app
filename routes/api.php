@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\RessourceValidationController;
 
 // Authentification
 Route::prefix('auth')->group(function () {
@@ -56,6 +57,13 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/', [CategoryController::class, 'add']);
         Route::put('/{id}', [CategoryController::class, 'update']);
         Route::delete('/{id}', [CategoryController::class, 'remove']);
+    });
+
+// Routes pour la validation des ressources (modérateurs et admins)
+    Route::prefix('validation')->group(function () {
+        Route::get('/ressources', [RessourceValidationController::class, 'index']); // Liste des ressources à valider
+        Route::post('/ressources/{ressource}', [RessourceValidationController::class, 'validate']); // Valider/rejeter une ressource
+        Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
     });
 
 });

@@ -124,14 +124,8 @@ class RessourceController extends Controller
         // Récupérer l'utilisateur connecté
         $user = auth()->user();
         
-        // Debug: Afficher les informations de l'utilisateur et de son rôle
-        \Log::info('User ID: ' . $user->id);
-        \Log::info('User roleId: ' . $user->roleId);
-        \Log::info('User role: ' . ($user->role ? json_encode($user->role->toArray()) : 'null'));
-        
         // Déterminer si l'utilisateur est admin
         $isAdmin = $user->isAdmin();
-        \Log::info('Is Admin: ' . ($isAdmin ? 'true' : 'false'));
         
         // Créer la ressource avec les données validées
         $ressourceData = array_merge($validated, [

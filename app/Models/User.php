@@ -84,4 +84,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->role && $this->role->rank === 1;
     }
+
+    /**
+     * Vérifie si l'utilisateur est un modérateur.
+     *
+     * @return bool
+     */
+    public function isModerator()
+    {
+        return $this->role && $this->role->rank === 2;
+    }
 }
