@@ -12,8 +12,8 @@ class Comment extends Model
     protected $fillable = [
         'content',
         'commentDate',
-        'ressource_id', // Changé de resource_id à ressource_id
-        'author_id',
+        'ressource_id',
+        'user_id',
     ];
 
     public function ressource() // Changé de resource() à ressource()
