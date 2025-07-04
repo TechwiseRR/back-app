@@ -46,9 +46,13 @@ class CommentController extends Controller
     {
         $validatedData = $request->validate([
             'content' => 'required|string',
-            'resource_id' => 'required|exists:resources,id',
-            'author_id' => 'required|exists:users,id',
+            'resource_id' => 'required|exists:ressources,id',
         ]);
+
+        $validatedData['user_id'] = auth()->id();
+
+        $validatedData['ressource_id'] = $validatedData['resource_id'];
+        unset($validatedData['resource_id']);
 
         $comment = Comment::create($validatedData);
 
@@ -72,8 +76,8 @@ class CommentController extends Controller
 
         $validatedData = $request->validate([
             'content' => 'sometimes|string',
-            'resource_id' => 'sometimes|exists:resources,id',
-            'author_id' => 'sometimes|exists:users,id',
+            'resource_id' => 'sometimes|exists:ressources,id',
+            'user_id' => 'sometimes|exists:users,id',
         ]);
 
         $comment->update($validatedData);
@@ -99,5 +103,60 @@ class CommentController extends Controller
 
         return response()->json(['message' => 'Commentaire supprimé avec succès']);
     }
+
+    /**
+     * Répond à un commentaire.
+     *
+     */
+    public function reply(Request $request, $id)
+    {
+        $parent = Comment::find($id);
+
+        if (!$parent) {
+            return response()->json(['message' => 'Commentaire parent introuvable'], 404);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        $reply = Comment::create([
+            'content'      => $validated['content'],
+            'user_id'      => auth()->id(),
+            'ressource_id' => $parent->ressource_id,
+            'parent_id'    => $parent->id,
+        ]);
+
+        return response()->json(['message' => 'Réponse ajoutée', 'comment' => $reply], 201);
+    }
+
+    /**
+     * Modère un commentaire (pour les modérateurs).
+     *
+
+     */
+    public function moderate(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (!$user->role || $user->role->roleName !== 'Modérateur') {
+            return response()->json(['error' => 'Accès interdit'], 403);
+        }
+
+        $comment = Comment::find($id);
+        if (!$comment) {
+            return response()->json(['message' => 'Commentaire introuvable'], 404);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:visible,masqué,supprimé'
+        ]);
+
+        $comment->status = $validated['status'];
+        $comment->save();
+
+        return response()->json(['message' => 'Commentaire modéré', 'comment' => $comment]);
+    }
+
+
 
 }
