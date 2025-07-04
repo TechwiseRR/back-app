@@ -12,6 +12,7 @@ class Ressource extends Model
     protected $fillable = [
         'title',
         'content',
+        'description',
         'publicationDate',
         'status',
         'validationDate',

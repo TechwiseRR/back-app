@@ -110,6 +110,7 @@ class RessourceController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'description' => 'required|string',
             'publicationDate' => 'nullable|date',
             'status' => 'required|in:draft,published,pending',
             'validationDate' => 'nullable|date',
