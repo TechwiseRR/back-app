@@ -12,16 +12,17 @@ class Notification extends Model
     protected $table = 'notifications';
 
     protected $fillable = [
-        'userId',
-        'notificationType',
-        'content',
-        'notificationDate',
-        'read',
+        'title',
+        'message',
+        'type',
+        'user_id',
+        'creation_date',
+        'is_read',
     ];
 
     protected $casts = [
-        'notificationDate' => 'datetime',
-        'read' => 'boolean',
+        'creation_date' => 'datetime',
+        'is_read' => 'boolean',
     ];
 
     /**
@@ -29,7 +30,7 @@ class Notification extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
