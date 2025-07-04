@@ -19,8 +19,6 @@ class UserSeeder extends Seeder
         $users = [
             [
                 'username' => 'admin_user',
-                'firstName' => 'Admin',
-                'lastName' => 'User',
                 'email' => 'admin@example.com',
                 'password' => bcrypt('password'),
                 'avatar' => null,
@@ -32,8 +30,6 @@ class UserSeeder extends Seeder
             ],
             [
                 'username' => 'moderator_user',
-                'firstName' => 'Moderator',
-                'lastName' => 'User',
                 'email' => 'moderator@example.com',
                 'password' => bcrypt('password'),
                 'avatar' => null,
