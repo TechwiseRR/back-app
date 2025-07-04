@@ -138,7 +138,7 @@ class CommentController extends Controller
     public function moderate(Request $request, $id)
     {
         $user = auth()->user();
-        if (!$user->role || $user->role->name !== 'moderator') {
+        if (!$user->role || $user->role->roleName !== 'Modérateur') {
             return response()->json(['error' => 'Accès interdit'], 403);
         }
 
@@ -148,7 +148,7 @@ class CommentController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:approved,rejected,hidden'
+            'status' => 'required|in:visible,masqué,supprimé'
         ]);
 
         $comment->status = $validated['status'];
