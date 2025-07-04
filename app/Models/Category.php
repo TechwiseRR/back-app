@@ -13,4 +13,9 @@ class Category extends Model
         'name',
         'description',
     ];
+
+    public function ressources()
+    {
+        return $this->hasMany(\App\Models\Ressource::class);
+    }
 }
