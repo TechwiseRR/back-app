@@ -46,15 +46,15 @@ class RessourceController extends Controller
         }
 
         // Tri
-        $sortBy = $request->get('sort_by', 'publicationDate');
+        $sortBy = $request->get('sort_by', 'publication_date');
         $sortOrder = $request->get('sort_order', 'desc');
 
         // Vérifier que les champs de tri sont autorisés
-        $allowedSortFields = ['title', 'publicationDate', 'upvotes', 'downvotes', 'created_at'];
+        $allowedSortFields = ['title', 'publication_date', 'upvotes', 'downvotes', 'created_at'];
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder);
         } else {
-            $query->orderBy('publicationDate', 'desc');
+            $query->orderBy('publication_date', 'desc');
         }
 
         // Pagination
@@ -111,9 +111,9 @@ class RessourceController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'description' => 'required|string',
-            'publicationDate' => 'nullable|date',
-            'status' => 'required|in:draft,published,pending',
-            'validationDate' => 'nullable|date',
+            'publication_date' => 'nullable|date',
+            'status' => 'required|in:draft,published,archived',
+            'validation_date' => 'nullable|date',
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'required|exists:categories,id',
@@ -143,9 +143,10 @@ class RessourceController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'content' => 'sometimes|required|string',
-            'publicationDate' => 'nullable|date',
-            'status' => 'sometimes|required|in:draft,published,pending',
-            'validationDate' => 'nullable|date',
+            'description' => 'sometimes|required|string',
+            'publication_date' => 'nullable|date',
+            'status' => 'sometimes|required|in:draft,published,archived',
+            'validation_date' => 'nullable|date',
             'upvotes' => 'nullable|integer|min:0',
             'downvotes' => 'nullable|integer|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
