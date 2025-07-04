@@ -28,7 +28,7 @@ class RegisterController extends Controller
                 'registrationDate' => now(),
                 'updateDate' => now(),
                 'isEmailVerified' => false,
-                'roleId' => 1,
+                'roleId' => 3,
             ]);
 
             $token = JWTAuth::fromUser($user);
