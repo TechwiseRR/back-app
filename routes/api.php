@@ -17,11 +17,19 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
 });
 
-// Routes publiques pour les ressources (accessibles à tous - même non connectés)
+// Routes publiques (accessibles à tous - même non connectés)
 Route::prefix('ressources')->group(function () {
     Route::get('/', [RessourceController::class, 'index']); // Lister les ressources
     Route::get('/{ressource}', [RessourceController::class, 'show']); // Afficher une ressource
 });
+
+// Routes publiques pour les catégories
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{id}', [CategoryController::class, 'show']);
+
+// Routes publiques pour les commentaires
+Route::get('/comments', [CommentController::class, 'index']);
+Route::get('/comments/{id}', [CommentController::class, 'show']);
 
 // Routes protégées par auth (nécessitent une authentification)
 Route::middleware('auth:api')->group(function () {
@@ -48,11 +56,17 @@ Route::middleware('auth:api')->group(function () {
 // Permissions
     Route::apiResource('permissions', PermissionController::class);
 
-// Commentaires
+// Commentaires (protégées)
     Route::post('/comments', [CommentController::class, 'add']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'remove']);
     Route::put('/comments/{id}/moderate', [CommentController::class, 'moderate']);
     Route::post('/comments/{id}/reply', [CommentController::class, 'reply']);
-    Route::get('/comments', [CommentController::class, 'index']);
+
+// Catégories (protégées)
+    Route::post('/categories', [CategoryController::class, 'add']);
+    Route::put('/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'remove']);
 
 // Routes pour la validation des ressources (modérateurs et admins)
     Route::prefix('validation')->group(function () {
