@@ -7,11 +7,17 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\CategoryController;
 
 // Authentification
 Route::prefix('auth')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/register', [RegisterController::class, 'register']);
+});
+
+// Routes publiques pour les catégories (accessible à tous)
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
 });
 
 // Routes publiques pour les ressources (accessibles à tous - même non connectés)
@@ -43,5 +49,13 @@ Route::middleware('auth:api')->group(function () {
 
 // Permissions
     Route::apiResource('permissions', PermissionController::class);
+
+// Routes protégées pour la gestion admin des catégories
+    Route::prefix('categories')->group(function () {
+        Route::get('/{id}', [CategoryController::class, 'show']);
+        Route::post('/', [CategoryController::class, 'add']);
+        Route::put('/{id}', [CategoryController::class, 'update']);
+        Route::delete('/{id}', [CategoryController::class, 'remove']);
+    });
 
 });
