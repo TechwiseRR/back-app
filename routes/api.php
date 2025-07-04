@@ -7,7 +7,6 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\RessourceController;
 
 // Authentification
 Route::prefix('auth')->group(function () {
