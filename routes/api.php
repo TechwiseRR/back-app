@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\CommentController;
 
 // Authentification
 Route::prefix('auth')->group(function () {
@@ -20,6 +21,7 @@ Route::prefix('ressources')->group(function () {
     Route::get('/{ressource}', [RessourceController::class, 'show']); // Afficher une ressource
 });
 
+// Routes protégées par auth (nécessitent une authentification)
 Route::middleware('auth:api')->group(function () {
 // Profil personnel
     Route::get('/user', [UserController::class, 'user']);
@@ -43,5 +45,11 @@ Route::middleware('auth:api')->group(function () {
 
 // Permissions
     Route::apiResource('permissions', PermissionController::class);
+
+// Commentaires
+    Route::post('/comments', [CommentController::class, 'add']);
+    Route::put('/comments/{id}/moderate', [CommentController::class, 'moderate']);
+    Route::post('/comments/{id}/reply', [CommentController::class, 'reply']);
+    Route::get('/comments', [CommentController::class, 'index']);
 
 });
