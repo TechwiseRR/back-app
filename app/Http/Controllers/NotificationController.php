@@ -19,12 +19,18 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'notificationType' => 'required|string',
-            'content' => 'required|string',
-            'userId' => 'required|exists:users,id',
-            'notificationDate' => 'nullable|date',
-            'read' => 'boolean',
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+            'type' => 'required|in:info,warning,success,error',
+            'user_id' => 'required|exists:users,id',
+            'creation_date' => 'nullable|date',
+            'is_read' => 'boolean',
         ]);
+
+        // Définir la date de création à maintenant si elle n'est pas fournie
+        if (!isset($validated['creation_date'])) {
+            $validated['creation_date'] = now();
+        }
 
         $notification = Notification::create($validated);
 
@@ -45,10 +51,11 @@ class NotificationController extends Controller
     public function update(Request $request, Notification $notification)
     {
         $validated = $request->validate([
-            'notificationType' => 'sometimes|required|string',
-            'content' => 'sometimes|required|string',
-            'notificationDate' => 'nullable|date',
-            'read' => 'boolean',
+            'title' => 'sometimes|required|string|max:255',
+            'message' => 'sometimes|required|string',
+            'type' => 'sometimes|required|in:info,warning,success,error',
+            'creation_date' => 'nullable|date',
+            'is_read' => 'boolean',
         ]);
 
         $notification->update($validated);
@@ -64,8 +71,8 @@ class NotificationController extends Controller
         $notification->delete();
 
         return response()->json([
-            'message' => 'Notification supprimée'
-        ], 204);
+            'message' => 'Notification supprimée avec succès'
+        ], 200);
     }
 
 }
