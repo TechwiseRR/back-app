@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'block.deactivated' => \App\Http\Middleware\BlockDeactivatedUsers::class,
+        // Configuration CORS pour permettre l'accès depuis l'app mobile
+        $middleware->api(append: [
+            \App\Http\Middleware\CorsMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

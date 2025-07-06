@@ -67,4 +67,11 @@ Route::middleware(['auth:api', 'block.deactivated'])->group(function () {
         Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
     });
 
+// Routes pour la validation des ressources (modérateurs et admins)
+    Route::prefix('validation')->group(function () {
+        Route::get('/ressources', [RessourceValidationController::class, 'index']); // Liste des ressources à valider
+        Route::post('/ressources/{ressource}', [RessourceValidationController::class, 'validate']); // Valider/rejeter une ressource
+        Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
+    });
+
 });
