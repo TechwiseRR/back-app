@@ -25,6 +25,7 @@ class User extends Authenticatable implements JWTSubject
         'registrationDate',
         'updateDate',
         'isEmailVerified',
+        'is_active',
         'roleId',
     ];
 
@@ -94,5 +95,25 @@ class User extends Authenticatable implements JWTSubject
     public function isModerator()
     {
         return $this->role && $this->role->rank === 2;
+    }
+
+    /**
+     * Vérifie si l'utilisateur est actif.
+     *
+     * @return bool
+     */
+    public function isActive()
+    {
+        return $this->is_active === true;
+    }
+
+    /**
+     * Vérifie si l'utilisateur est anonyme.
+     *
+     * @return bool
+     */
+    public function isAnonymous()
+    {
+        return $this->email === 'anonymous@domain.com';
     }
 }

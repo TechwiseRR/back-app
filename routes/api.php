@@ -23,6 +23,11 @@ Route::prefix('ressources')->group(function () {
     Route::get('/{ressource}', [RessourceController::class, 'show']); // Afficher une ressource
 });
 
+
+
+// Route de désactivation (sans middleware pour test)
+Route::post('/user/deactivate', [UserController::class, 'deactivate']);
+
 // Routes protégées par auth (nécessitent une authentification)
 Route::middleware('auth:api')->group(function () {
 // Profil personnel
@@ -38,6 +43,7 @@ Route::middleware('auth:api')->group(function () {
 
 // Gestion des utilisateurs (admin uniquement)
     Route::apiResource('users', UserController::class)->except(['store']);
+    Route::post('/users/{user}/reactivate', [UserController::class, 'reactivate']);
 
 // Déconnexion
     Route::post('/logout', [LogoutController::class, 'logout']);
