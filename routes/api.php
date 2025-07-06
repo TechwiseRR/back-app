@@ -25,11 +25,11 @@ Route::prefix('ressources')->group(function () {
 
 
 
-// Route de désactivation (sans middleware pour test)
+// Route de désactivation
 Route::post('/user/deactivate', [UserController::class, 'deactivate']);
 
 // Routes protégées par auth (nécessitent une authentification)
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'block.deactivated'])->group(function () {
 // Profil personnel
     Route::get('/user', [UserController::class, 'user']);
     Route::put('/user', [UserController::class, 'updateSelf']);
@@ -43,7 +43,7 @@ Route::middleware('auth:api')->group(function () {
 
 // Gestion des utilisateurs (admin uniquement)
     Route::apiResource('users', UserController::class)->except(['store']);
-    Route::post('/users/{user}/reactivate', [UserController::class, 'reactivate']);
+    Route::post('/users/{user}/reactivate', [UserController::class, 'reactivate'])->middleware('block.deactivated');
 
 // Déconnexion
     Route::post('/logout', [LogoutController::class, 'logout']);

@@ -28,6 +28,20 @@ class LoginController extends Controller
         try {
             $credentials = $validator->validated();
 
+            // Vérifier si l'utilisateur existe et est actif
+            $user = \App\Models\User::where('email', $credentials['email'])->first();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Identifiants invalides'], 401);
+            }
+            
+            if (!$user->isActive()) {
+                return response()->json([
+                    'error' => 'Compte désactivé',
+                    'message' => 'Ce compte a été désactivé. Contactez un administrateur pour le réactiver.'
+                ], 403);
+            }
+
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Identifiants invalides'], 401);
             }
