@@ -30,6 +30,7 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 // Routes publiques pour les commentaires
 Route::get('/comments', [CommentController::class, 'index']);
 Route::get('/comments/{id}', [CommentController::class, 'show']);
+Route::get('/ressources/{id}/comments', [CommentController::class, 'getByRessource']);
 
 // Route de désactivation
 Route::post('/user/deactivate', [UserController::class, 'deactivate']);
