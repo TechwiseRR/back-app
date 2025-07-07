@@ -81,12 +81,16 @@ class RessourceController extends Controller
      * @param  \App\Models\Ressource  $ressource
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Ressource $ressource)
     {
-        $ressource = \App\Models\Ressource::with(['votes.user'])->find($id);
+        // Charger la relation user
+        $ressource->load('user');
 
-        if (!$ressource) {
-            return response()->json(['message' => 'Ressource non trouvée'], 404);
+        // Vérifier si la ressource est publiée
+        if ($ressource->status !== 'published') {
+            return response()->json([
+                'error' => 'Cette ressource n\'est pas disponible'
+            ], 404);
         }
 
         // Transformer les votes pour ne garder que l'id et le username de l'utilisateur
@@ -105,9 +109,14 @@ class RessourceController extends Controller
             ];
         });
 
-        // Retourner la ressource avec les votes transformés
+        // Retourner la ressource avec les votes transformés et user réduit
         $data = $ressource->toArray();
         $data['votes'] = $votes;
+        // Réduire la clé user de la ressource principale
+        $data['user'] = $ressource->user ? [
+            'id' => $ressource->user->id,
+            'username' => $ressource->user->username,
+        ] : null;
 
         return response()->json($data);
     }
