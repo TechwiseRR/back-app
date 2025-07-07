@@ -36,10 +36,8 @@ class UserTest extends TestCase
             'roleId' => 2, // non-admin
             'is_active' => 1,
         ]);
-        $token = auth()->login($user);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/users');
+        $response = $this->actingAs($user, 'api')->getJson('/api/users');
 
         $response->assertStatus(403);
     }
