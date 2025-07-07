@@ -31,8 +31,11 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('/comments', [CommentController::class, 'index']);
 Route::get('/comments/{id}', [CommentController::class, 'show']);
 
+// Route de désactivation
+Route::post('/user/deactivate', [UserController::class, 'deactivate']);
+
 // Routes protégées par auth (nécessitent une authentification)
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'block.deactivated'])->group(function () {
 // Profil personnel
     Route::get('/user', [UserController::class, 'user']);
     Route::put('/user', [UserController::class, 'updateSelf']);
@@ -46,6 +49,7 @@ Route::middleware('auth:api')->group(function () {
 
 // Gestion des utilisateurs (admin uniquement)
     Route::apiResource('users', UserController::class)->except(['store']);
+    Route::post('/users/{user}/reactivate', [UserController::class, 'reactivate'])->middleware('block.deactivated');
 
 // Déconnexion
     Route::post('/logout', [LogoutController::class, 'logout']);
@@ -67,6 +71,13 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/categories', [CategoryController::class, 'add']);
     Route::put('/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [CategoryController::class, 'remove']);
+
+// Routes pour la validation des ressources (modérateurs et admins)
+    Route::prefix('validation')->group(function () {
+        Route::get('/ressources', [RessourceValidationController::class, 'index']); // Liste des ressources à valider
+        Route::post('/ressources/{ressource}', [RessourceValidationController::class, 'validate']); // Valider/rejeter une ressource
+        Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
+    });
 
 // Routes pour la validation des ressources (modérateurs et admins)
     Route::prefix('validation')->group(function () {
