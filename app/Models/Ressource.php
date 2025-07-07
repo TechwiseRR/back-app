@@ -16,13 +16,12 @@ class Ressource extends Model
         'publication_date',
         'status',
         'validation_date',
-        'upvotes',
-        'downvotes',
+        'is_validated',
+        'tags',
         'category_id',
         'user_id',
         'validator_id',
         'type_ressource_id',
-        'is_validated'
     ];
 
     public function category()
