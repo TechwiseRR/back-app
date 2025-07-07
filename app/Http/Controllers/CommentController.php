@@ -158,5 +158,20 @@ class CommentController extends Controller
     }
 
 
+    /**
+     * Récupère les commentaires d'une ressource spécifique.
+     *
+     * @param int $ressourceId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getByRessource($ressourceId)
+    {
+        $comments = Comment::where('ressource_id', $ressourceId)
+            ->orderBy('creation_date', 'asc')
+            ->get();
+
+        return response()->json($comments);
+    }
+
 
 }
