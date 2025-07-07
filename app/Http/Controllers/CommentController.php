@@ -15,7 +15,19 @@ class CommentController extends Controller
      */
     public function index()
     {
-        $comments = Comment::all();
+        $comments = \App\Models\Comment::with('user')->get()->map(function($comment) {
+            return [
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at,
+                // Ajoute d'autres champs du commentaire si besoin
+                'user' => $comment->user ? [
+                    'id' => $comment->user->id,
+                    'username' => $comment->user->username,
+                ] : null,
+            ];
+        });
+
         return response()->json($comments);
     }
 
@@ -166,9 +178,21 @@ class CommentController extends Controller
      */
     public function getByRessource($ressourceId)
     {
-        $comments = Comment::where('ressource_id', $ressourceId)
-            ->orderBy('creation_date', 'asc')
-            ->get();
+        $comments = \App\Models\Comment::where('ressource_id', $ressourceId)
+            ->with('user')
+            ->get()
+            ->map(function($comment) {
+                return [
+                    'id' => $comment->id,
+                    'content' => $comment->content,
+                    'created_at' => $comment->created_at,
+                    // Ajoute d'autres champs du commentaire si besoin
+                    'user' => $comment->user ? [
+                        'id' => $comment->user->id,
+                        'username' => $comment->user->username,
+                    ] : null,
+                ];
+            });
 
         return response()->json($comments);
     }
