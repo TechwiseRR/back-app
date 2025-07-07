@@ -60,4 +60,4 @@ class UserLoginTest extends TestCase
         $response->assertStatus(401);
         $response->assertJsonStructure(['error']);
     }
-} 
+}

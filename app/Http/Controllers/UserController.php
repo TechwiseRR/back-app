@@ -142,7 +142,7 @@ class UserController extends Controller
     {
         // Récupérer le token depuis le header
         $token = $request->bearerToken();
-        
+
         if (!$token) {
             return response()->json(['error' => 'Token manquant'], 401);
         }
@@ -150,7 +150,7 @@ class UserController extends Controller
         try {
             // Authentifier manuellement avec le token JWT
             $user = auth('api')->setToken($token)->user();
-            
+
             if (!$user) {
                 return response()->json(['error' => 'Token invalide'], 401);
             }

@@ -32,4 +32,4 @@ class UserCreationTest extends TestCase
         $this->assertEquals('testuser', $user->username);
         $this->assertEquals('testuser@example.com', $user->email);
     }
-} 
+}

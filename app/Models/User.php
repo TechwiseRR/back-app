@@ -103,7 +103,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public function isActive()
     {
-        return $this->is_active === true;
+        return $this->is_active == 1;
     }
 
     /**
