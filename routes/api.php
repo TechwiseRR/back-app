@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\InfoProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RessourceController;
 use App\Http\Controllers\UserController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\RessourceValidationController;
+use App\Http\Controllers\VoteController;
 
 // Authentification
 Route::prefix('auth')->group(function () {
@@ -61,6 +64,9 @@ Route::middleware(['auth:api', 'block.deactivated'])->group(function () {
 // Permissions
     Route::apiResource('permissions', PermissionController::class);
 
+// Informations de profil utilisateur
+    Route::get('/info-profile', [InfoProfileController::class, 'index']);
+
 // Commentaires (protégées)
     Route::post('/comments', [CommentController::class, 'add']);
     Route::put('/comments/{id}', [CommentController::class, 'update']);
@@ -80,11 +86,11 @@ Route::middleware(['auth:api', 'block.deactivated'])->group(function () {
         Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
     });
 
-// Routes pour la validation des ressources (modérateurs et admins)
-    Route::prefix('validation')->group(function () {
-        Route::get('/ressources', [RessourceValidationController::class, 'index']); // Liste des ressources à valider
-        Route::post('/ressources/{ressource}', [RessourceValidationController::class, 'validate']); // Valider/rejeter une ressource
-        Route::get('/ressources/{ressource}/history', [RessourceValidationController::class, 'history']); // Historique des validations
-    });
+// Route pour les votes (protégées)
+    Route::get('/votes', [VoteController::class, 'index']);
+    Route::get('/votes/{id}', [VoteController::class, 'show']);
+    Route::post('/votes', [VoteController::class, 'add']);
+    Route::put('/votes/{id}', [VoteController::class, 'update']);
+    Route::delete('/votes/{id}', [VoteController::class, 'remove']);
 
 });

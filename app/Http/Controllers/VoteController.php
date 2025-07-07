@@ -14,8 +14,8 @@ class VoteController extends Controller
      */
     public function index()
     {
-        // Récupérer tous les votes avec leurs relations
-        $votes = Vote::with(['resource', 'user'])->get();
+        // Récupérer tous les votes avec leurs relations (user: id, username)
+        $votes = Vote::with(['ressource', 'user:id,username'])->get();
 
         return response()->json($votes);
     }
@@ -28,7 +28,7 @@ class VoteController extends Controller
      */
     public function show($id)
     {
-        $vote = Vote::with(['resource', 'user'])->find($id);
+        $vote = Vote::with(['ressource', 'user:id,username'])->find($id);
 
         // Vérifier si le vote existe
         if (!$vote) {
@@ -48,8 +48,8 @@ class VoteController extends Controller
     {
         // Valider les données entrantes
         $validated = $request->validate([
-            'voteType' => 'required|string|max:255',
-            'resource_id' => 'required|integer|exists:resources,id',
+            'type' => 'required|string|max:255',
+            'ressource_id' => 'required|integer|exists:ressources,id',
             'user_id' => 'required|integer|exists:users,id',
         ]);
 
@@ -76,8 +76,8 @@ class VoteController extends Controller
 
         // Valider les données entrantes
         $validated = $request->validate([
-            'voteType' => 'required|string|max:255',
-            'resource_id' => 'required|integer|exists:resources,id',
+            'type' => 'required|string|max:255',
+            'ressource_id' => 'required|integer|exists:ressources,id',
             'user_id' => 'required|integer|exists:users,id',
         ]);
 
