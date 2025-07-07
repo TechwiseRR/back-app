@@ -81,22 +81,35 @@ class RessourceController extends Controller
      * @param  \App\Models\Ressource  $ressource
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Ressource $ressource)
+    public function show($id)
     {
-        // Charger les relations
-        $ressource->load(['category', 'user', 'validator', 'type']);
+        $ressource = \App\Models\Ressource::with(['votes.user'])->find($id);
 
-        // Vérifier si la ressource est publiée
-        if ($ressource->status !== 'published') {
-            return response()->json([
-                'error' => 'Cette ressource n\'est pas disponible'
-            ], 404);
+        if (!$ressource) {
+            return response()->json(['message' => 'Ressource non trouvée'], 404);
         }
 
-        return response()->json([
-            'message' => 'Ressource récupérée avec succès',
-            'data' => $ressource
-        ]);
+        // Transformer les votes pour ne garder que l'id et le username de l'utilisateur
+        $votes = $ressource->votes->map(function($vote) {
+            return [
+                'id' => $vote->id,
+                'type' => $vote->type,
+                'ressource_id' => $vote->ressource_id,
+                'user_id' => $vote->user_id,
+                'created_at' => $vote->created_at,
+                'updated_at' => $vote->updated_at,
+                'user' => $vote->user ? [
+                    'id' => $vote->user->id,
+                    'username' => $vote->user->username,
+                ] : null,
+            ];
+        });
+
+        // Retourner la ressource avec les votes transformés
+        $data = $ressource->toArray();
+        $data['votes'] = $votes;
+
+        return response()->json($data);
     }
 
     /**
