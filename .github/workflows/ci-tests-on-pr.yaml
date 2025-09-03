@@ -107,9 +107,9 @@ jobs:
       - name: Run tests (Pest or PHPUnit)
         run: |
           if [ -f ./vendor/bin/pest ]; then
-            ./vendor/bin/pest -v
+            ./vendor/bin/pest
           else
-            php artisan test -v
+            php artisan test
           fi
 
       # ---------- Frontend (Vite) ----------
