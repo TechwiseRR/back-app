@@ -16,17 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # ---- Laravel (env CI) ----
       APP_ENV: testing
-      # Clé fixe pour la CI (suffisante pour les tests)
       APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       CACHE_DRIVER: array
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
-      # ---- DB SQLite éphémère ----
       DB_CONNECTION: sqlite
       DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
-      # ---- Composer (optimisations) ----
       COMPOSER_PROCESS_TIMEOUT: 0
       COMPOSER_NO_INTERACTION: 1
       COMPOSER_NO_AUDIT: 1
@@ -41,7 +37,7 @@ jobs:
       - name: Set up PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'   # lock 8.2 car composer.lock exige 8.1/8.2
+          php-version: '8.2'
           tools: composer:v2
           extensions: mbstring, sqlite3, pdo_sqlite, gd, bcmath, intl
           coverage: none
@@ -60,7 +56,6 @@ jobs:
       # ---------- Préparation .env ----------
       - name: Préparer le fichier .env (robuste)
         run: |
-          # Crée .env à partir de .env.example, sinon fallback minimal
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
               cp .env.example .env
@@ -84,7 +79,6 @@ EOF
             fi
           fi
 
-          # Injecte APP_KEY si manquant
           if ! grep -q '^APP_KEY=' .env; then
             echo "APP_KEY=${APP_KEY}" >> .env
           fi
@@ -93,7 +87,7 @@ EOF
           grep -E '^(APP_ENV|APP_KEY|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
           echo "-------------------------"
 
-      - name: Clear/optimize config (optionnel)
+      - name: Clear/optimize config
         run: |
           php artisan config:clear
           php artisan config:cache
@@ -106,7 +100,6 @@ EOF
 
       - name: Migrations (si nécessaires)
         run: php artisan migrate --force
-        # Si tes tests seedent la DB eux-mêmes, tu peux commenter cette step.
 
       - name: Lancer les tests (Pest ou PHPUnit)
         run: |
@@ -124,8 +117,6 @@ EOF
             echo "manager=pnpm" >> $GITHUB_OUTPUT
           elif [ -f yarn.lock ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
-          elif [ -f package-lock.json ]; then
-            echo "manager=npm" >> $GITHUB_OUTPUT
           else
             echo "manager=npm" >> $GITHUB_OUTPUT
           fi
@@ -134,10 +125,10 @@ EOF
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Le cache intégré d'actions/setup-node ne gère que npm/yarn.
-          cache: ${{ steps.pm.outputs.manager == 'npm' && 'npm' || (steps.pm.outputs.manager == 'yarn' && 'yarn' || '') }}
+          # Pas de valeur de cache dynamique ici pour éviter les erreurs YAML
 
-      - name: Installer pnpm (si nécessaire)
+      # ----- pnpm -----
+      - name: Installer pnpm
         if: ${{ steps.pm.outputs.manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
         with:
@@ -152,25 +143,45 @@ EOF
           restore-keys: |
             pnpm-
 
-      - name: Installer dépendances front
-        run: |
-          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
-            pnpm install --frozen-lockfile
-          elif [ "${{ steps.pm.outputs.manager }}" = "yarn" ]; then
-            yarn install --frozen-lockfile
-          else
-            npm ci
-          fi
+      - name: Install deps (pnpm)
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        run: pnpm install --frozen-lockfile
 
-      - name: Build assets (Vite)
-        run: |
-          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
-            pnpm run build
-          elif [ "${{ steps.pm.outputs.manager }}" = "yarn" ]; then
-            yarn build
-          else
-            npm run build --if-present
-          fi
+      - name: Build (pnpm)
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        run: pnpm run build
+
+      # ----- yarn -----
+      - name: Cache yarn
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: yarn
+
+      - name: Install deps (yarn)
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        run: yarn install --frozen-lockfile
+
+      - name: Build (yarn)
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        run: yarn build
+
+      # ----- npm -----
+      - name: Cache npm
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps (npm)
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        run: npm ci
+
+      - name: Build (npm)
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        run: npm run build --if-present
 
       - name: Upload artifacts (optionnel)
         if: always()
