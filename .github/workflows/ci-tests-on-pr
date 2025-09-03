@@ -1,0 +1,147 @@
+name: PR CI (Laravel tests + build)
+
+on:
+  pull_request:
+    branches: [ main, preprod, dev ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      CACHE_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+      # Ajuste si tu utilises autre chose dans .env.testing
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: mbstring, sqlite3, pdo_sqlite, gd, bcmath, intl
+          coverage: none
+
+      - name: PHP version
+        run: php -v
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --ansi
+
+      - name: Prepare environment (.env)
+        run: |
+          cp -n .env.example .env || true
+          php -r "file_exists('artisan') && exit(0);"
+
+      - name: Generate APP_KEY if missing
+        run: |
+          if grep -q '^APP_KEY=$' .env || ! grep -q '^APP_KEY=' .env; then
+            php artisan key:generate
+          fi
+
+      - name: Create SQLite database file
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Run migrations (if any)
+        run: php artisan migrate --force
+        # Si tu n'as pas besoin de migrer pour les tests, commente cette étape
+
+      - name: Run Laravel tests (PHPUnit/Pest)
+        run: |
+          if [ -f ./vendor/bin/pest ]; then
+            ./vendor/bin/pest -v
+          else
+            php artisan test -v
+          fi
+
+      # ------- Front-end build -------
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f package-lock.json ]; then
+            echo "manager=npm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "manager=npm" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: ${{ steps.pm.outputs.manager == 'npm' && 'npm' || '' }}
+
+      - name: Install pnpm (if needed)
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Cache pnpm store
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-
+
+      - name: Install dependencies (frontend)
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          elif [ "${{ steps.pm.outputs.manager }}" = "yarn" ]; then
+            yarn install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Build assets (Vite)
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm run build
+          elif [ "${{ steps.pm.outputs.manager }}" = "yarn" ]; then
+            yarn build
+          else
+            npm run build --if-present
+          fi
+
+      - name: Upload build artifacts (optionnel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-build
+          path: |
+            public/build
+            public/hot
+          if-no-files-found: ignore
