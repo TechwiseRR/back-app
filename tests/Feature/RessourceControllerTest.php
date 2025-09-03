@@ -24,15 +24,15 @@ class RessourceControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Créer les rôles
         $userRole = Role::factory()->create(['rank' => 3]);
         $adminRole = Role::factory()->create(['rank' => 1]);
-        
+
         // Créer les utilisateurs
         $this->user = User::factory()->create(['roleId' => $userRole->id]);
         $this->admin = User::factory()->create(['roleId' => $adminRole->id]);
-        
+
         // Créer les données de base
         $this->category = Category::factory()->create();
         $this->typeRessource = TypeRessource::factory()->create();
@@ -92,21 +92,21 @@ class RessourceControllerTest extends TestCase
         $response = $this->getJson("/api/ressources/{$ressource->id}");
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'data' => [
-                        'id',
-                        'title',
-                        'content',
-                        'description',
-                        'status',
-                        'category',
-                        'user',
-                        'validator',
-                        'type'
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'title',
+                    'content',
+                    'description',
+                    'status',
+                    'category',
+                    'user',
+                    'validator',
+                    'type'
+                ]
+            ]);
     }
+
 
     /**
      * Test que les ressources non publiées ne sont pas accessibles publiquement.
@@ -127,7 +127,7 @@ class RessourceControllerTest extends TestCase
     public function test_store_creates_ressource_for_authenticated_user(): void
     {
         $token = JWTAuth::fromUser($this->user);
-        
+
         $ressourceData = [
             'title' => 'Test Resource',
             'content' => 'Test content',
@@ -211,7 +211,7 @@ class RessourceControllerTest extends TestCase
     public function test_authentication_required_for_update(): void
     {
         $ressource = Ressource::factory()->create();
-        
+
         $response = $this->putJson("/api/ressources/{$ressource->id}", [
             'title' => 'Updated Title',
         ]);
@@ -242,7 +242,7 @@ class RessourceControllerTest extends TestCase
     public function test_authentication_required_for_destroy(): void
     {
         $ressource = Ressource::factory()->create();
-        
+
         $response = $this->deleteJson("/api/ressources/{$ressource->id}");
 
         $response->assertStatus(401);
@@ -254,14 +254,14 @@ class RessourceControllerTest extends TestCase
     public function test_index_filters_by_category(): void
     {
         $category2 = Category::factory()->create();
-        
+
         Ressource::factory()->create([
-            'category_id' => $this->category->id, 
+            'category_id' => $this->category->id,
             'status' => 'published',
             'is_validated' => true
         ]);
         Ressource::factory()->create([
-            'category_id' => $category2->id, 
+            'category_id' => $category2->id,
             'status' => 'published',
             'is_validated' => true
         ]);
@@ -278,12 +278,12 @@ class RessourceControllerTest extends TestCase
     public function test_index_search_by_title(): void
     {
         Ressource::factory()->create([
-            'title' => 'Test Resource', 
+            'title' => 'Test Resource',
             'status' => 'published',
             'is_validated' => true
         ]);
         Ressource::factory()->create([
-            'title' => 'Another Resource', 
+            'title' => 'Another Resource',
             'status' => 'published',
             'is_validated' => true
         ]);
@@ -314,7 +314,7 @@ class RessourceControllerTest extends TestCase
     public function test_store_creates_validated_ressource_for_admin(): void
     {
         $token = JWTAuth::fromUser($this->admin);
-        
+
         $ressourceData = [
             'title' => 'Admin Resource',
             'content' => 'Admin content',
@@ -345,7 +345,7 @@ class RessourceControllerTest extends TestCase
     public function test_store_validates_required_fields(): void
     {
         $token = JWTAuth::fromUser($this->user);
-        
+
         $response = $this->withHeaders(['Authorization' => "Bearer {$token}"])
                         ->postJson('/api/ressources', []);
 
@@ -418,4 +418,4 @@ class RessourceControllerTest extends TestCase
         $this->assertCount(5, $response->json('data'));
         $this->assertEquals(3, $response->json('pagination.last_page'));
     }
-} 
+}
