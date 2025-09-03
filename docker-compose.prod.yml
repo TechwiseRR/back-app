@@ -54,14 +54,15 @@ services:
     environment:
       POSTGRES_DB: laravel
       POSTGRES_USER: laravel
-      POSTGRES_PASSWORD: ${DB_PASSWORD}   # <- secret
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U laravel -d laravel"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-laravel} -d ${POSTGRES_DB:-laravel} || pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 30s
     networks:
       - backend
 
