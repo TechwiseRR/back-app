@@ -95,6 +95,10 @@ jobs:
           php artisan config:clear
           php artisan config:cache
 
+      # ---------- Inject JWT secret ----------
+      - name: Set JWT secret
+        run: echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
       # ---------- SQLite ----------
       - name: Create SQLite database
         run: |
