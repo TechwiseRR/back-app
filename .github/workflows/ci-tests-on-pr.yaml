@@ -129,45 +129,6 @@ jobs:
         with:
           node-version: '20'
 
-      # ----- pnpm -----
-      - name: Install pnpm
-        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Cache pnpm store
-        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-
-
-      - name: Install deps (pnpm)
-        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
-        run: pnpm install --frozen-lockfile
-
-      - name: Build (pnpm)
-        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
-        run: pnpm run build
-
-      # ----- yarn -----
-      - name: Cache yarn
-        if: ${{ steps.pm.outputs.manager == 'yarn' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: yarn
-
-      - name: Install deps (yarn)
-        if: ${{ steps.pm.outputs.manager == 'yarn' }}
-        run: yarn install --frozen-lockfile
-
-      - name: Build (yarn)
-        if: ${{ steps.pm.outputs.manager == 'yarn' }}
-        run: yarn build
 
       # ----- npm -----
       - name: Cache npm
