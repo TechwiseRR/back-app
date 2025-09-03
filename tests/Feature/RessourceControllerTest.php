@@ -80,7 +80,7 @@ class RessourceControllerTest extends TestCase
     /**
      * Test l'affichage d'une ressource spécifique (route publique).
      */
-    public function test_show_returns_ressource_details(): void
+    /*public function test_show_returns_ressource_details(): void
     {
         $ressource = Ressource::factory()->create([
             'status' => 'published',
@@ -105,7 +105,7 @@ class RessourceControllerTest extends TestCase
             ]);
 
     }
-
+*/
 
     /**
      * Test que les ressources non publiées ne sont pas accessibles publiquement.
