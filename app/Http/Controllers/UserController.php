@@ -133,4 +133,76 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Utilisateur supprimé']);
     }
+
+    /**
+     * Désactive le compte de l'utilisateur connecté
+     * Change l'email vers anonymous@domain.com et désactive le compte
+     */
+    public function deactivate(Request $request)
+    {
+        // Récupérer le token depuis le header
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return response()->json(['error' => 'Token manquant'], 401);
+        }
+
+        try {
+            // Authentifier manuellement avec le token JWT
+            $user = auth('api')->setToken($token)->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Token invalide'], 401);
+            }
+
+            // Désactiver le compte
+            $user->update([
+                'is_active' => false,
+                'email' => 'anonymous_' . $user->id . '@domain.com', // Email unique par utilisateur
+                'password' => bcrypt('anonymous_password'),
+                'username' => 'anonyme_' . $user->id, // Garder une trace de l'ID original
+            ]);
+
+            // Déconnexion de l'utilisateur
+            auth()->logout();
+
+            return response()->json([
+                'message' => 'Compte désactivé avec succès. Vos ressources ont été conservées.',
+                'user_id' => $user->id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de la désactivation: ' . $e->getMessage(),
+                'token_received' => $token ? 'oui' : 'non',
+            ], 500);
+        }
+    }
+
+    /**
+     * Réactive un compte utilisateur (admin uniquement)
+     */
+    public function reactivate(User $user)
+    {
+        $authUser = auth()->user();
+
+        if (!$authUser || $authUser->roleId !== 1) {
+            return response()->json(['error' => 'Accès interdit'], 403);
+        }
+
+        if ($user->isActive()) {
+            return response()->json(['error' => 'Le compte est déjà actif'], 400);
+        }
+
+        // Réactiver le compte
+        $user->update([
+            'is_active' => true,
+            'email' => 'user_' . $user->id . '@reactivated.com', // Email temporaire
+            'username' => 'user_' . $user->id, // Username temporaire
+        ]);
+
+        return response()->json([
+            'message' => 'Compte réactivé avec succès. L\'utilisateur devra mettre à jour ses informations.',
+            'data' => $user->makeHidden(['password']),
+        ]);
+    }
 }

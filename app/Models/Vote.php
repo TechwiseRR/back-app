@@ -10,16 +10,15 @@ class Vote extends Model
     use HasFactory;
 
     protected $fillable = [
-        'voteType',
+        'type',
         'voteDate',
-        'resource_id',
+        'ressource_id',
         'user_id',
     ];
 
-
-    public function resource()
+    public function ressource()
     {
-        return $this->belongsTo(Resource::class);
+        return $this->belongsTo(Ressource::class);
     }
 
     public function user()

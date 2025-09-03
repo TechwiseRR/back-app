@@ -11,14 +11,19 @@ class Comment extends Model
 
     protected $fillable = [
         'content',
-        'commentDate',
-        'resource_id',
-        'author_id',
+        'creation_date',
+        'ressource_id',
+        'user_id',
     ];
 
-    public function resource()
+    public function ressource() // Changé de resource() à ressource()
     {
-        return $this->belongsTo(Resource::class);
+        return $this->belongsTo(Ressource::class); // Changé de Resource à Ressource
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function author()
@@ -27,10 +32,9 @@ class Comment extends Model
     }
 
     /** Méthode logique du diagramme */
-
     public function postComment()
     {
-        $this->commentDate = now();
+        $this->creation_date = now();
         $this->save();
     }
 }

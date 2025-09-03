@@ -14,31 +14,21 @@ class RegisterController extends Controller
 {
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:50|unique:users',
-            'firstName' => 'required|string|max:100',
-            'lastName' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+        $validated = $request->validate([
+            'username' => 'required|string|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         try {
-            $data = $validator->validated();
-
             $user = User::create([
-                'username' => $data['username'],
-                'firstName' => $data['firstName'],
-                'lastName' => $data['lastName'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
                 'registrationDate' => now(),
                 'updateDate' => now(),
                 'isEmailVerified' => false,
-                'roleId' => 1,
+                'roleId' => 3,
             ]);
 
             $token = JWTAuth::fromUser($user);

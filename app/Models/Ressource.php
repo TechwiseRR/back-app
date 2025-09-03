@@ -12,22 +12,22 @@ class Ressource extends Model
     protected $fillable = [
         'title',
         'content',
-        'publicationDate',
+        'description',
+        'publication_date',
         'status',
-        'validationDate',
-        'upvotes',
-        'downvotes',
+        'validation_date',
+        'is_validated',
+        'tags',
         'category_id',
         'user_id',
         'validator_id',
-        'type_ressource_id'
+        'type_ressource_id',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
-
 
     public function user()
     {
@@ -41,6 +41,22 @@ class Ressource extends Model
 
     public function type()
     {
-        return $this->belongsTo(TypeRessource::class, 'type_ressource_id'); // Correction ici
+        return $this->belongsTo(TypeRessource::class, 'type_ressource_id');
+    }
+
+    // Relations inverses ajoutées
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function historiqueActions()
+    {
+        return $this->hasMany(HistoriqueAction::class);
     }
 }

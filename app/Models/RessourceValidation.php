@@ -5,27 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class RessourceValidation extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'validationStatus',
-        'validationDate',
+        'ressource_id',
+        'validator_id',
+        'status',
         'comment',
-        'resource_id',
-        'moderator_id',
+        'validation_date',
     ];
 
-    public function resource()
+    public function ressource()
     {
-        return $this->belongsTo(Resource::class);
+        return $this->belongsTo(Ressource::class, 'ressource_id');
     }
 
-    public function moderator()
+    public function validator()
     {
-        return $this->belongsTo(User::class, 'moderator_id');
+        return $this->belongsTo(User::class, 'validator_id');
     }
 
 }
