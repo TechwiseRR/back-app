@@ -16,13 +16,20 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # ---- Laravel (env CI) ----
       APP_ENV: testing
+      # Clé fixe pour la CI (suffisante pour les tests)
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       CACHE_DRIVER: array
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
+      # ---- DB SQLite éphémère ----
       DB_CONNECTION: sqlite
       DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
-      # Ajuste si tu utilises autre chose dans .env.testing
+      # ---- Composer (optimisations) ----
+      COMPOSER_PROCESS_TIMEOUT: 0
+      COMPOSER_NO_INTERACTION: 1
+      COMPOSER_NO_AUDIT: 1
 
     steps:
       - name: Checkout
@@ -30,16 +37,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up PHP
+      # ---------- PHP / Composer ----------
+      - name: Set up PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.2'   # lock 8.2 car composer.lock exige 8.1/8.2
           tools: composer:v2
           extensions: mbstring, sqlite3, pdo_sqlite, gd, bcmath, intl
           coverage: none
-
-      - name: PHP version
-        run: php -v
 
       - name: Cache Composer
         uses: actions/cache@v4
@@ -52,27 +57,58 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress --ansi
 
-      - name: Prepare environment (.env)
+      # ---------- Préparation .env ----------
+      - name: Préparer le fichier .env (robuste)
         run: |
-          cp -n .env.example .env || true
-          php -r "file_exists('artisan') && exit(0);"
+          # Crée .env à partir de .env.example, sinon fallback minimal
+          if [ ! -f .env ]; then
+            if [ -f .env.example ]; then
+              cp .env.example .env
+            else
+              cat > .env <<'EOF'
+APP_NAME=Laravel
+APP_ENV=testing
+APP_DEBUG=true
+APP_URL=http://localhost
 
-      - name: Generate APP_KEY if missing
-        run: |
-          if grep -q '^APP_KEY=$' .env || ! grep -q '^APP_KEY=' .env; then
-            php artisan key:generate
+LOG_CHANNEL=stack
+
+DB_CONNECTION=${DB_CONNECTION}
+DB_DATABASE=${DB_DATABASE}
+
+CACHE_DRIVER=${CACHE_DRIVER}
+QUEUE_CONNECTION=${QUEUE_CONNECTION}
+SESSION_DRIVER=${SESSION_DRIVER}
+APP_KEY=
+EOF
+            fi
           fi
 
-      - name: Create SQLite database file
+          # Injecte APP_KEY si manquant
+          if ! grep -q '^APP_KEY=' .env; then
+            echo "APP_KEY=${APP_KEY}" >> .env
+          fi
+
+          echo "------ Aperçu .env ------"
+          grep -E '^(APP_ENV|APP_KEY|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
+          echo "-------------------------"
+
+      - name: Clear/optimize config (optionnel)
+        run: |
+          php artisan config:clear
+          php artisan config:cache
+
+      # ---------- Base SQLite ----------
+      - name: Créer la base SQLite
         run: |
           mkdir -p database
           touch database/database.sqlite
 
-      - name: Run migrations (if any)
+      - name: Migrations (si nécessaires)
         run: php artisan migrate --force
-        # Si tu n'as pas besoin de migrer pour les tests, commente cette étape
+        # Si tes tests seedent la DB eux-mêmes, tu peux commenter cette step.
 
-      - name: Run Laravel tests (PHPUnit/Pest)
+      - name: Lancer les tests (Pest ou PHPUnit)
         run: |
           if [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest -v
@@ -80,16 +116,16 @@ jobs:
             php artisan test -v
           fi
 
-      # ------- Front-end build -------
-      - name: Detect package manager
+      # ---------- Frontend (Vite) ----------
+      - name: Détecter le gestionnaire de paquets
         id: pm
         run: |
           if [ -f pnpm-lock.yaml ]; then
             echo "manager=pnpm" >> $GITHUB_OUTPUT
-          elif [ -f package-lock.json ]; then
-            echo "manager=npm" >> $GITHUB_OUTPUT
           elif [ -f yarn.lock ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
+          elif [ -f package-lock.json ]; then
+            echo "manager=npm" >> $GITHUB_OUTPUT
           else
             echo "manager=npm" >> $GITHUB_OUTPUT
           fi
@@ -98,9 +134,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: ${{ steps.pm.outputs.manager == 'npm' && 'npm' || '' }}
+          # Le cache intégré d'actions/setup-node ne gère que npm/yarn.
+          cache: ${{ steps.pm.outputs.manager == 'npm' && 'npm' || (steps.pm.outputs.manager == 'yarn' && 'yarn' || '') }}
 
-      - name: Install pnpm (if needed)
+      - name: Installer pnpm (si nécessaire)
         if: ${{ steps.pm.outputs.manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
         with:
@@ -115,7 +152,7 @@ jobs:
           restore-keys: |
             pnpm-
 
-      - name: Install dependencies (frontend)
+      - name: Installer dépendances front
         run: |
           if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
             pnpm install --frozen-lockfile
@@ -135,7 +172,7 @@ jobs:
             npm run build --if-present
           fi
 
-      - name: Upload build artifacts (optionnel)
+      - name: Upload artifacts (optionnel)
         if: always()
         uses: actions/upload-artifact@v4
         with:
