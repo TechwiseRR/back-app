@@ -58,6 +58,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Copier l'exemple si .env absent
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
               cp .env.example .env
@@ -81,13 +83,16 @@ jobs:
             fi
           fi
 
-          # inject APP_KEY if missing
+          # Injecter APP_KEY si manquant
           if ! grep -q '^APP_KEY=' .env; then
             echo "APP_KEY=${APP_KEY}" >> .env
           fi
 
+          # Injecter JWT_SECRET depuis GitHub Secrets
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
           echo "------ .env preview ------"
-          grep -E '^(APP_ENV|APP_KEY|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
+          grep -E '^(APP_ENV|APP_KEY|JWT_SECRET|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
           echo "--------------------------"
 
       - name: Clear and cache config
@@ -95,9 +100,6 @@ jobs:
           php artisan config:clear
           php artisan config:cache
 
-      # ---------- Inject JWT secret ----------
-      - name: Set JWT secret
-        run: echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
 
       # ---------- SQLite ----------
       - name: Create SQLite database
