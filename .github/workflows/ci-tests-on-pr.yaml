@@ -1,0 +1,196 @@
+name: PR CI (Laravel tests + build)
+
+on:
+  pull_request:
+    branches: [ main, preprod, dev ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      CACHE_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+      COMPOSER_PROCESS_TIMEOUT: 0
+      COMPOSER_NO_INTERACTION: 1
+      COMPOSER_NO_AUDIT: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------- PHP / Composer ----------
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          extensions: mbstring, sqlite3, pdo_sqlite, gd, bcmath, intl
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --ansi
+
+      # ---------- Prepare .env ----------
+      - name: Prepare .env file
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f .env ]; then
+            if [ -f .env.example ]; then
+              cp .env.example .env
+            else
+              printf "%s\n" \
+                "APP_NAME=Laravel" \
+                "APP_ENV=testing" \
+                "APP_DEBUG=true" \
+                "APP_URL=http://localhost" \
+                "" \
+                "LOG_CHANNEL=stack" \
+                "" \
+                "DB_CONNECTION=${DB_CONNECTION}" \
+                "DB_DATABASE=${DB_DATABASE}" \
+                "" \
+                "CACHE_DRIVER=${CACHE_DRIVER}" \
+                "QUEUE_CONNECTION=${QUEUE_CONNECTION}" \
+                "SESSION_DRIVER=${SESSION_DRIVER}" \
+                "APP_KEY=" \
+              > .env
+            fi
+          fi
+
+          # inject APP_KEY if missing
+          if ! grep -q '^APP_KEY=' .env; then
+            echo "APP_KEY=${APP_KEY}" >> .env
+          fi
+
+          echo "------ .env preview ------"
+          grep -E '^(APP_ENV|APP_KEY|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
+          echo "--------------------------"
+
+      - name: Clear and cache config
+        run: |
+          php artisan config:clear
+          php artisan config:cache
+
+      # ---------- SQLite ----------
+      - name: Create SQLite database
+        run: |
+          mkdir -p database
+          : > database/database.sqlite
+
+      - name: Run migrations (optional)
+        run: php artisan migrate --force
+
+      - name: Run tests (Pest or PHPUnit)
+        run: |
+          if [ -f ./vendor/bin/pest ]; then
+            ./vendor/bin/pest -v
+          else
+            php artisan test -v
+          fi
+
+      # ---------- Frontend (Vite) ----------
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+          else
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ----- pnpm -----
+      - name: Install pnpm
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Cache pnpm store
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-
+
+      - name: Install deps (pnpm)
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (pnpm)
+        if: ${{ steps.pm.outputs.manager == 'pnpm' }}
+        run: pnpm run build
+
+      # ----- yarn -----
+      - name: Cache yarn
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: yarn
+
+      - name: Install deps (yarn)
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        run: yarn install --frozen-lockfile
+
+      - name: Build (yarn)
+        if: ${{ steps.pm.outputs.manager == 'yarn' }}
+        run: yarn build
+
+      # ----- npm -----
+      - name: Cache npm
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps (npm)
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        run: npm ci
+
+      - name: Build (npm)
+        if: ${{ steps.pm.outputs.manager == 'npm' }}
+        run: npm run build --if-present
+
+      - name: Upload artifacts (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-build
+          path: |
+            public/build
+            public/hot
+          if-no-files-found: ignore
