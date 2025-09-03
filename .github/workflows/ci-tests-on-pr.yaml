@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
 
       # ---------- PHP / Composer ----------
-      - name: Set up PHP 8.2
+      - name: Setup PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -50,58 +50,61 @@ jobs:
           restore-keys: |
             composer-
 
-      - name: Install PHP dependencies
+      - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress --ansi
 
-      # ---------- Préparation .env ----------
-      - name: Préparer le fichier .env (robuste)
+      # ---------- Prepare .env ----------
+      - name: Prepare .env file
+        shell: bash
         run: |
+          set -euo pipefail
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
               cp .env.example .env
             else
-              cat > .env <<'EOF'
-APP_NAME=Laravel
-APP_ENV=testing
-APP_DEBUG=true
-APP_URL=http://localhost
-
-LOG_CHANNEL=stack
-
-DB_CONNECTION=${DB_CONNECTION}
-DB_DATABASE=${DB_DATABASE}
-
-CACHE_DRIVER=${CACHE_DRIVER}
-QUEUE_CONNECTION=${QUEUE_CONNECTION}
-SESSION_DRIVER=${SESSION_DRIVER}
-APP_KEY=
-EOF
+              printf "%s\n" \
+                "APP_NAME=Laravel" \
+                "APP_ENV=testing" \
+                "APP_DEBUG=true" \
+                "APP_URL=http://localhost" \
+                "" \
+                "LOG_CHANNEL=stack" \
+                "" \
+                "DB_CONNECTION=${DB_CONNECTION}" \
+                "DB_DATABASE=${DB_DATABASE}" \
+                "" \
+                "CACHE_DRIVER=${CACHE_DRIVER}" \
+                "QUEUE_CONNECTION=${QUEUE_CONNECTION}" \
+                "SESSION_DRIVER=${SESSION_DRIVER}" \
+                "APP_KEY=" \
+              > .env
             fi
           fi
 
+          # inject APP_KEY if missing
           if ! grep -q '^APP_KEY=' .env; then
             echo "APP_KEY=${APP_KEY}" >> .env
           fi
 
-          echo "------ Aperçu .env ------"
+          echo "------ .env preview ------"
           grep -E '^(APP_ENV|APP_KEY|DB_CONNECTION|DB_DATABASE|CACHE_DRIVER|QUEUE_CONNECTION|SESSION_DRIVER)=' .env || true
-          echo "-------------------------"
+          echo "--------------------------"
 
-      - name: Clear/optimize config
+      - name: Clear and cache config
         run: |
           php artisan config:clear
           php artisan config:cache
 
-      # ---------- Base SQLite ----------
-      - name: Créer la base SQLite
+      # ---------- SQLite ----------
+      - name: Create SQLite database
         run: |
           mkdir -p database
-          touch database/database.sqlite
+          : > database/database.sqlite
 
-      - name: Migrations (si nécessaires)
+      - name: Run migrations (optional)
         run: php artisan migrate --force
 
-      - name: Lancer les tests (Pest ou PHPUnit)
+      - name: Run tests (Pest or PHPUnit)
         run: |
           if [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest -v
@@ -110,25 +113,24 @@ EOF
           fi
 
       # ---------- Frontend (Vite) ----------
-      - name: Détecter le gestionnaire de paquets
+      - name: Detect package manager
         id: pm
         run: |
           if [ -f pnpm-lock.yaml ]; then
-            echo "manager=pnpm" >> $GITHUB_OUTPUT
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
           elif [ -f yarn.lock ]; then
-            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
           else
-            echo "manager=npm" >> $GITHUB_OUTPUT
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Pas de valeur de cache dynamique ici pour éviter les erreurs YAML
 
       # ----- pnpm -----
-      - name: Installer pnpm
+      - name: Install pnpm
         if: ${{ steps.pm.outputs.manager == 'pnpm' }}
         uses: pnpm/action-setup@v4
         with:
@@ -183,7 +185,7 @@ EOF
         if: ${{ steps.pm.outputs.manager == 'npm' }}
         run: npm run build --if-present
 
-      - name: Upload artifacts (optionnel)
+      - name: Upload artifacts (optional)
         if: always()
         uses: actions/upload-artifact@v4
         with:
