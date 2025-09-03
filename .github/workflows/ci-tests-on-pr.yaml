@@ -130,28 +130,3 @@ jobs:
           node-version: '20'
 
 
-      # ----- npm -----
-      - name: Cache npm
-        if: ${{ steps.pm.outputs.manager == 'npm' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-
-      - name: Install deps (npm)
-        if: ${{ steps.pm.outputs.manager == 'npm' }}
-        run: npm ci
-
-      - name: Build (npm)
-        if: ${{ steps.pm.outputs.manager == 'npm' }}
-        run: npm run build --if-present
-
-      - name: Upload artifacts (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: public-build
-          path: |
-            public/build
-            public/hot
-          if-no-files-found: ignore
