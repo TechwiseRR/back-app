@@ -93,18 +93,17 @@ class RessourceControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'title',
-                    'content',
-                    'description',
-                    'status',
-                    'category',
-                    'user',
-                    'validator',
-                    'type'
-                ]
+                'id',
+                'title',
+                'content',
+                'description',
+                'status',
+                'category',
+                'user',
+                'validator',
+                'type'
             ]);
+
     }
 
 
