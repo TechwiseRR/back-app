@@ -13,12 +13,24 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('username')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('avatar')->nullable();
+            $table->text('bio')->nullable();
+            $table->timestamp('registrationDate')->useCurrent();
+            $table->timestamp('updateDate')->useCurrent()->useCurrentOnUpdate();
+            $table->boolean('isEmailVerified')->default(false);
+            $table->unsignedBigInteger('roleId')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            // Contraintes de clé étrangère
+            $table->foreign('roleId')->references('id')->on('roles')->onDelete('set null');
+
+            // Index pour la performance
+            $table->index('roleId');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -47,3 +59,4 @@ return new class extends Migration
         Schema::dropIfExists('sessions');
     }
 };
+
